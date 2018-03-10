@@ -1,9 +1,9 @@
-const loki = require('lokijs');
-const LokiFSStructuredAdapter = require("lokijs/src/loki-fs-structured-adapter");
-const fs = require('fs');
-const path = require('path');
+import * as loki from 'lokijs';
+import * as LokiFSStructuredAdapter from 'lokijs/src/loki-fs-structured-adapter';
+import * as fs from 'fs';
+import * as path from 'path';
 
-const connectionPromise = new Promise((resolve, reject) => {
+export const connection = new Promise<Loki>((resolve, reject) => {
     // Setup data directory
     const dir = './data';
 
@@ -27,5 +27,3 @@ const connectionPromise = new Promise((resolve, reject) => {
         });
     }
 });
-
-module.exports = connectionPromise;

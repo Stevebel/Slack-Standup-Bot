@@ -1,6 +1,6 @@
-const { RTMClient, WebClient } = require('@slack/client');
-const database = require('./dao/database');
-const ChannelDao = require('./dao/channel-dao');
+import {RTMClient, WebClient} from '@slack/client';
+import { connection } from './dao/database';
+import { ChannelDao } from './dao/channel-dao';
 
 // An access token (from your Slack app or custom integration - usually xoxb)
 const token = process.env.SLACK_TOKEN;
@@ -8,20 +8,20 @@ const token = process.env.SLACK_TOKEN;
 // The client is initialized and then started to get an active connection to the platform
 const rtm = new RTMClient(token);
 const web = new WebClient(token);
-let dbConn;
+let channelDao:ChannelDao;
 let myName = 'standup_bot';
 
 
 let rtmWait = new Promise(resolve => {
-    rtm.start();
+    rtm.start({})
     rtm.on('ready', resolve);
   }
 );
 
 console.log("Loading...");
-Promise.all([database, rtmWait]).then( (data) => {
+Promise.all([connection, rtmWait]).then( (data) => {
   console.log("Finished loading");
-  dbConn = data[0];
+  channelDao = new ChannelDao(data[0]);
   init();
 })
 function init(){
@@ -32,7 +32,7 @@ function init(){
       // Take any channel for which the bot is a member
       const channels = res.channels.filter(c => c.is_member);
       channels.forEach(channel => handleChannel(channel));
-      ChannelDao.markMissingChannelsLeft(channels.map(c => c.id));
+      channelDao.markMissingChannelsLeft(channels.map(c => c.id));
 
       if(channels.length === 0) {
         console.log('This bot does not belong to any channels, invite it to at least one and try again');
@@ -44,17 +44,16 @@ function init(){
 }
 
 function handleChannel(channel){
-  let dbChannel = ChannelDao.addChannel(channel.id, channel.name);
+  let dbChannel = channelDao.addChannel(channel.id, channel.name);
   if(!dbChannel.visited){
     rtm.sendMessage(
       `Hello, I'm a bot that will help you with your daily stand-up.` + 
       `If you would like to stop receiving messages from me please say \`@${myName} stop\`.`, 
       channel.id)
-    .then((msg) => ChannelDao.markChannelVisited(channel.id))
+    .then((msg) => channelDao.markChannelVisited(channel.id))
     .catch(console.error);
   }
 }
 function handleChannelLeft(channelId){
-  ChannelDao.markChannelLeft(channelId);
+  channelDao.markChannelLeft(channelId);
 }
-
