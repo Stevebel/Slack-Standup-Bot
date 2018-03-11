@@ -24,6 +24,9 @@ export class UserDao {
                 unique: ['id']
             });
     }
+    public getAll(): IUser[] {
+        return this.collection.find({});
+    }
     public getOrAddUser(input: IUser): IUser {
         let user = this.collection.by("id", input.id);
         if (user) {

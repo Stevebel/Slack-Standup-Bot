@@ -2,11 +2,14 @@ import { getClient, IBotClient } from './client';
 import { connection } from './dao/database';
 import { ChannelDao } from './dao/channel-dao';
 import { UserDao } from './dao/user-dao';
+import { Questions } from './chat/questions';
+import { flatMap } from 'lodash';
 
 let bot: IBotClient;
 let channelDao: ChannelDao;
 let userDao: UserDao;
 const userChannels = new Map<string, string[]>();
+let questions: Questions[] = [];
 
 console.log("Loading...");
 Promise.all([connection, getClient]).then( data => {
@@ -36,6 +39,9 @@ function init() {
       console.log('This bot does not belong to any channels, invite it to at least one and try again');
     }
     console.log("Finished loading");
+  })
+  .then(() => {
+    questions = userDao.getAll().map(user => new Questions(bot, user.id));
   });
   // Bot channel changes
   bot.rtm.on('channel_joined', evt => handleAddChannel(evt.channel) );

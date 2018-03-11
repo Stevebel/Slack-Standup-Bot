@@ -16,7 +16,7 @@ export const getClient = new Promise<IBotClient>((resolve, reject) => {
     const web = new WebClient(token);
 
     rtm.start({});
-    rtm.on('ready', () => {
+    rtm.once('ready', () => {
         web.users.info({user: rtm.activeUserId}).then(user => {
 
             resolve({
