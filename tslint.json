@@ -4,6 +4,17 @@
         "tslint:recommended"
     ],
     "jsRules": {},
-    "rules": {},
+    "rules": {
+        "quotemark": false,
+        "trailing-comma": false,
+        "eofline": false,
+        "ordered-imports": false,
+        "no-consecutive-blank-lines": false,
+        "arrow-parens": {
+            "options":"ban-single-arg-parens"
+        },
+        "no-console": false
+    },
+    
     "rulesDirectory": []
 }

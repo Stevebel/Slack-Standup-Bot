@@ -7,22 +7,22 @@ export const connection = new Promise<Loki>((resolve, reject) => {
     // Setup data directory
     const dir = './data';
 
-    if (!fs.existsSync(dir)){
+    if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
         fs.mkdir(dir, onDirectoryReady);
-    }else{
+    } else {
         onDirectoryReady();
     }
 
-    function onDirectoryReady(){
+    function onDirectoryReady() {
         // Create / Load Database files
-        var adapter = new LokiFSStructuredAdapter();
+        const adapter = new LokiFSStructuredAdapter();
 
-        let db = new loki(path.join(dir,'data.json'), { 
-            adapter : adapter,
+        const db = new loki(path.join(dir, 'data.json'), {
+            adapter,
             autoload: true,
             autoloadCallback : () => resolve(db),
-            autosave: true, 
+            autosave: true,
             autosaveInterval: 4000
         });
     }
