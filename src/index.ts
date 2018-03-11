@@ -6,6 +6,7 @@ import { Questions } from './chat/questions';
 import { flatMap } from 'lodash';
 
 let bot: IBotClient;
+let db: Loki;
 let channelDao: ChannelDao;
 let userDao: UserDao;
 const userChannels = new Map<string, string[]>();
@@ -14,7 +15,7 @@ let questions: Questions[] = [];
 console.log("Loading...");
 Promise.all([connection, getClient]).then( data => {
   console.log("Got connection");
-  const db = data[0];
+  db = data[0];
   bot = data[1];
   channelDao = new ChannelDao(db);
   userDao = new UserDao(db);
@@ -41,7 +42,7 @@ function init() {
     console.log("Finished loading");
   })
   .then(() => {
-    questions = userDao.getAll().map(user => new Questions(bot, user.id));
+    questions = userDao.getAll().map(user => new Questions(bot, db, user.id));
   });
   // Bot channel changes
   bot.rtm.on('channel_joined', evt => handleAddChannel(evt.channel) );

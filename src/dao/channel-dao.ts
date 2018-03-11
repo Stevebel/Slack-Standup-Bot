@@ -6,6 +6,7 @@ export interface IChannel {
     name?: string;
     visited?: boolean;
     left?: boolean;
+    teamName?: string;
 }
 
 export class ChannelDao {
@@ -30,6 +31,9 @@ export class ChannelDao {
         channel = this.collection.insert(channel);
 
         return channel;
+    }
+    public getChannel(id: string) {
+        return this.collection.by("id", id);
     }
     public markChannelVisited(id: string) {
         let channel = this.collection.by("id", id);
