@@ -2,13 +2,8 @@ import { IBotClient } from '../client';
 import { WebAPICallResult } from '@slack/client';
 import { ChannelDao, IChannel } from '../dao/channel-dao';
 import { UserDao } from '../dao/user-dao';
-
-const questionTexts = [
-   "Did you work on {teamName} {lastDay}?",
-   "What did you do for {teamName} {lastDay}?",
-   "What will you do for {teamName} today?",
-   "Do you have any concerns?"
-];
+import { ChatPostMessageArguments } from '@slack/client/dist/methods';
+import { getQuestionCount, getQuestionText } from "./question-text";
 
 export class Questions {
     private chatChannel: string;
@@ -29,7 +24,7 @@ export class Questions {
         });
     }
     public ask() {
-        if (this.questionNum >= questionTexts.length) {
+        if (this.questionNum >= getQuestionCount()) {
             this.channelNum++;
             this.questionNum = 0;
         }
@@ -37,13 +32,30 @@ export class Questions {
         if (channels.length > this.channelNum) {
             const channel = channels[this.channelNum];
 
-            let text = questionTexts[this.questionNum++ % questionTexts.length];
-            text = text.replace('{teamName}', this.getTeamName(channel));
-            text = text.replace('{lastDay}', this.getLastDay());
-            this.bot.web.chat.postMessage({
+            const message: ChatPostMessageArguments = {
                 channel: this.chatChannel,
-                text
-            });
+                text: getQuestionText(this.questionNum, channel.id, this.channelDao)
+            };
+            if (this.questionNum === 0) {
+                message.attachments = [{
+                    fallback: "Please respond YES or NO",
+                    actions: [
+                        {
+                            name: "yes_or_no",
+                            type: "button",
+                            text: "Yes"
+                        },
+                        {
+                            name: "yes_or_no",
+                            type: "button",
+                            text: "No"
+                        }
+                    ]
+                }];
+            }
+            console.log(message);
+            this.bot.web.chat.postMessage(message);
+            this.questionNum++;
         }
     }
     private getChannelsWithQuestions() {
@@ -59,18 +71,5 @@ export class Questions {
         if (evt.user === this.userId && evt.channel === this.chatChannel) {
             this.ask();
         }
-    }
-    private getTeamName(channel: IChannel) {
-        const channelDb = this.channelDao.getChannel(channel.id);
-        if (channelDb && (channelDb.teamName || channelDb.name)) {
-            return channelDb.teamName || channelDb.name;
-        }
-        return "your project";
-    }
-    private getLastDay() {
-        if (new Date().getDay() === 1) {
-            return "Friday";
-        }
-        return "yesterday";
     }
 }
