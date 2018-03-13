@@ -34,15 +34,20 @@ export class AnswerDao {
         }
         this.collection.insert(answer as IAnswer);
     }
-    public getAnswersAfter(date: Date, userId?: string, channelId?: string) {
-        const userIdQuery = userId ? { $eq: userId} : undefined;
-        const channelIdQuery = channelId ? { $eq: channelId} : undefined;
+    public getUserAnswersAfter(date: Date, userId: string) {
         return this.collection.find({
             submitDate: {
                 $jgte: date
             },
-            userId: userIdQuery,
-            channelId: channelIdQuery
+            userId: { $eq: userId }
+        });
+    }
+    public getChannelAnswersAfter(date: Date, channelId: string) {
+        return this.collection.find({
+            submitDate: {
+                $jgte: date
+            },
+            channelId: { $eq: channelId }
         });
     }
 }
