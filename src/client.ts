@@ -1,10 +1,12 @@
 import {RTMClient, WebClient} from '@slack/client';
+import { EventEmitter } from 'events';
 
 export interface IBotClient {
     userId: string;
     name: string;
     rtm: RTMClient;
     web: WebClient;
+    events: EventEmitter;
 }
 
 export const getClient = new Promise<IBotClient>((resolve, reject) => {
@@ -23,7 +25,8 @@ export const getClient = new Promise<IBotClient>((resolve, reject) => {
                 userId: rtm.activeUserId,
                 name: user.user.name,
                 rtm,
-                web
+                web,
+                events: new EventEmitter()
             });
 
         }).catch(console.error);

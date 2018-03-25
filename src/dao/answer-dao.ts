@@ -25,8 +25,12 @@ export class AnswerDao {
     public schema() {
         this.collection =
             this.db.addCollection('answers', {
-                indices: ['userId', 'channelId', 'submitDate']
+                indices: ['userId', 'channelId', 'submitDate'],
             });
+        this.collection.removeDataOnly();
+    }
+    public onAnswersChange(callback) {
+        this.collection.on('insert', callback);
     }
     public submitAnswer(answer: IAnswerInput) {
         if (!answer.submitDate) {

@@ -4,6 +4,7 @@ import { ChannelDao } from './dao/channel-dao';
 import { UserDao } from './dao/user-dao';
 import { Questions } from './chat/questions';
 import { flatMap } from 'lodash';
+import { Answers } from './chat/answers';
 
 let bot: IBotClient;
 let db: Loki;
@@ -11,6 +12,7 @@ let channelDao: ChannelDao;
 let userDao: UserDao;
 const userChannels = new Map<string, string[]>();
 let questions: Questions[] = [];
+const answers: Answers[] = [];
 
 console.log("Loading...");
 Promise.all([connection, getClient]).then( data => {
@@ -65,10 +67,21 @@ function handleAddChannel(channel) {
   channel.members
     .filter(userId => userId !== bot.userId)
     .forEach(userId => addUserToChannel(userId, channel.id));
+
+  const answersForChannel = answers.find(a => a.channelId === channel.id);
+  if (!answersForChannel) {
+    answers.push(new Answers(bot, db, channel.id));
+  } else {
+    answersForChannel.enable();
+  }
 }
 
 function handleChannelLeft(channelId) {
   channelDao.markChannelLeft(channelId);
+  const answersForChannel = answers.find(a => a.channelId === channelId);
+  if (answersForChannel) {
+    answersForChannel.disable();
+  }
 }
 
 function addUserToChannel(userId, channelId) {
