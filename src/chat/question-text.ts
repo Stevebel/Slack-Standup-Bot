@@ -11,11 +11,23 @@ export function getQuestionCount() {
     return questionTexts.length;
 }
 
+export function getQuestions(channel: string, channelDao: ChannelDao) {
+    return interpolateText(questionTexts, channel, channelDao);
+}
+
 export function getQuestionText(questionNum: number, channel: string, channelDao: ChannelDao): string {
-    let text = questionTexts[questionNum];
-    text = text.replace('{teamName}', getTeamName(channel, channelDao));
-    text = text.replace('{lastDay}', getLastDay());
-    return text;
+    const text = questionTexts[questionNum];
+    return interpolateText([text], channel, channelDao)[0];
+}
+
+function interpolateText(text: string[], channel: string, channelDao: ChannelDao){
+    const teamName = getTeamName(channel, channelDao);
+    const lastDay = getLastDay();
+
+    return text.map(line =>
+        line.replace('{teamName}', getTeamName(channel, channelDao))
+            .replace('{lastDay}', getLastDay())
+    );
 }
 
 function getTeamName(channel: string, channelDao: ChannelDao) {
